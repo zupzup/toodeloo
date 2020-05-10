@@ -1,0 +1,15 @@
+[db]
+host = "127.0.0.1"
+user = ""
+pw = ""
+name = "toodeloo"
+port = 27017
+
+[log]
+level = "info"
+
+[server]
+port = 8080
+
+[app]
+init_db = false
