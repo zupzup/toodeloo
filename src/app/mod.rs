@@ -1,9 +1,9 @@
 use crate::{error::Error::*, WebResult, DB};
+use askama::Template;
 use warp::{reject, reply::html, Reply};
-use yarte::Template;
 
 #[derive(Template)]
-#[template(path = "welcome")]
+#[template(path = "welcome.html")]
 struct WelcomeTemplate<'a> {
     title: &'a str,
     body: &'a str,
@@ -17,7 +17,7 @@ pub async fn welcome_handler(_db: DB) -> WebResult<impl Reply> {
         body: "To Toodeloo!",
     };
     let res = template
-        .call()
+        .render()
         .map_err(|e| reject::custom(TemplateError(e)))?;
     Ok(html(res))
 }

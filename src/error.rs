@@ -8,7 +8,7 @@ pub enum Error {
     #[error("mongodb error: {0}")]
     MongoError(#[from] mongodb::error::Error),
     #[error("templating error: {0}")]
-    TemplateError(#[from] core::fmt::Error),
+    TemplateError(#[from] askama::Error),
     #[error("error reading file: {0}")]
     ReadFileError(#[from] std::io::Error),
 }
