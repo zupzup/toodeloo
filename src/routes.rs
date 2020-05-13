@@ -12,14 +12,45 @@ pub fn router(db: DB) -> impl Filter<Extract = impl warp::Reply, Error = Infalli
         .and(with_db(db.clone()))
         .and_then(app::welcome_handler);
 
-    let books_route = warp::path!("books")
+    let books = warp::path("books");
+    let list = warp::path("list");
+    let new = warp::path("new");
+    let edit = warp::path("edit");
+    let delete = warp::path("delete");
+
+    let books_routes = books
+        .and(list)
+        .and(warp::get())
         .and(with_db(db.clone()))
-        .and_then(app::books::books_list_handler);
+        .and_then(app::books::books_list_handler)
+        .or(books
+            .and(new)
+            .and(warp::get())
+            .and(with_db(db.clone()))
+            .and_then(app::books::new_book_handler))
+        .or(books
+            .and(new)
+            .and(warp::post())
+            .and(warp::body::form())
+            .and(with_db(db.clone()))
+            .and_then(app::books::create_book_handler))
+        .or(books
+            .and(edit)
+            .and(warp::get())
+            .and(warp::path::param())
+            .and(with_db(db.clone()))
+            .and_then(app::books::edit_book_handler))
+        .or(books
+            .and(delete)
+            .and(warp::get())
+            .and(warp::path::param())
+            .and(with_db(db.clone()))
+            .and_then(app::books::delete_book_handler));
 
     welcome_route
         .or(metrics_route)
         .or(health_route)
-        .or(books_route)
+        .or(books_routes)
         .with(warp::cors().allow_any_origin())
         .recover(error::handle_rejection)
 }
