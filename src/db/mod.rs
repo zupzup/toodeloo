@@ -2,6 +2,8 @@ use crate::{Result, CONFIG};
 use log::info;
 use mongodb::{options::ClientOptions, Client, Database};
 
+pub mod books;
+
 pub async fn init() -> Result<(Database, Client)> {
     let mut client_options =
         ClientOptions::parse(&format!("mongodb://{}:{}", CONFIG.db.host, CONFIG.db.port)).await?;

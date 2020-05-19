@@ -13,21 +13,15 @@ pub fn router(db: DB) -> impl Filter<Extract = impl warp::Reply, Error = Infalli
         .and_then(app::welcome_handler);
 
     let books = warp::path("books");
-    let list = warp::path("list");
     let new = warp::path("new");
     let edit = warp::path("edit");
     let delete = warp::path("delete");
 
     let books_routes = books
-        .and(list)
+        .and(new)
         .and(warp::get())
         .and(with_db(db.clone()))
-        .and_then(app::books::books_list_handler)
-        .or(books
-            .and(new)
-            .and(warp::get())
-            .and(with_db(db.clone()))
-            .and_then(app::books::new_book_handler))
+        .and_then(app::books::new_book_handler)
         .or(books
             .and(new)
             .and(warp::post())
@@ -45,7 +39,11 @@ pub fn router(db: DB) -> impl Filter<Extract = impl warp::Reply, Error = Infalli
             .and(warp::get())
             .and(warp::path::param())
             .and(with_db(db.clone()))
-            .and_then(app::books::delete_book_handler));
+            .and_then(app::books::delete_book_handler))
+        .or(books
+            .and(warp::get())
+            .and(with_db(db.clone()))
+            .and_then(app::books::books_list_handler));
 
     welcome_route
         .or(metrics_route)

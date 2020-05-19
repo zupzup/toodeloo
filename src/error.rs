@@ -7,6 +7,10 @@ use warp::{http::StatusCode, Rejection, Reply};
 pub enum Error {
     #[error("mongodb error: {0}")]
     MongoError(#[from] mongodb::error::Error),
+    #[error("error during mongodb query: {0}")]
+    MongoQueryError(mongodb::error::Error),
+    #[error("could not access field in document: {0}")]
+    MongoDataError(#[from] bson::ordered::ValueAccessError),
     #[error("templating error: {0}")]
     TemplateError(#[from] askama::Error),
     #[error("error reading file: {0}")]
@@ -23,6 +27,8 @@ impl warp::reject::Reject for Error {}
 pub async fn handle_rejection(err: Rejection) -> std::result::Result<impl Reply, Infallible> {
     let code;
     let message;
+    // TODO: create template for this
+    // on invalid body, should return to the previous page with an error, depending
 
     if err.is_not_found() {
         code = StatusCode::NOT_FOUND;

@@ -1,3 +1,4 @@
+use crate::db::books::{create_book, fetch_books};
 use crate::{data::Book, error::Error::*, WebResult, DB};
 use askama::Template;
 use log::info;
@@ -16,17 +17,15 @@ struct NewBookTemplate {}
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct NewBook {
-    name: String,
-    author: String,
-    language: String,
-    pages: usize,
+    pub name: String,
+    pub author: String,
+    pub language: String,
+    pub pages: i32,
 }
 
-pub async fn books_list_handler(_db: DB) -> WebResult<impl Reply> {
-    let books = vec![
-        Book::new("1", "Siddharta", "Hermann Hesse", "DE", 200),
-        Book::new("2", "Sei Du Selbst", "Richard David Precht", "DE", 550),
-    ];
+pub async fn books_list_handler(db: DB) -> WebResult<impl Reply> {
+    info!("in list books handler");
+    let books = fetch_books(&db).await.map_err(|e| reject::custom(e))?;
     let template = BooklistTemplate { books };
     let res = template
         .render()
@@ -35,6 +34,7 @@ pub async fn books_list_handler(_db: DB) -> WebResult<impl Reply> {
 }
 
 pub async fn new_book_handler(_db: DB) -> WebResult<impl Reply> {
+    info!("in new book handler");
     let template = NewBookTemplate {};
     let res = template
         .render()
@@ -42,13 +42,12 @@ pub async fn new_book_handler(_db: DB) -> WebResult<impl Reply> {
     Ok(html(res))
 }
 
-pub async fn create_book_handler(body: NewBook, _db: DB) -> WebResult<impl Reply> {
-    info!("inside create book handler {:?}", body);
-    let template = BooklistTemplate { books: vec![] };
-    let res = template
-        .render()
-        .map_err(|e| reject::custom(TemplateError(e)))?;
-    Ok(html(res))
+pub async fn create_book_handler(body: NewBook, db: DB) -> WebResult<impl Reply> {
+    info!("in create book handler");
+    create_book(&body, &db)
+        .await
+        .map_err(|e| reject::custom(e))?;
+    books_list_handler(db).await
 }
 
 pub async fn edit_book_handler(id: i32, db: DB) -> WebResult<impl Reply> {
