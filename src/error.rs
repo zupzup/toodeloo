@@ -11,6 +11,10 @@ pub enum Error {
     MongoQueryError(mongodb::error::Error),
     #[error("could not access field in document: {0}")]
     MongoDataError(#[from] bson::ordered::ValueAccessError),
+    #[error("could find entry for: {0}")]
+    NoEntryFoundError(String),
+    #[error("invalid id used: {0}")]
+    InvalidIDError(String),
     #[error("templating error: {0}")]
     TemplateError(#[from] askama::Error),
     #[error("error reading file: {0}")]

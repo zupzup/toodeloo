@@ -14,6 +14,7 @@ pub fn router(db: DB) -> impl Filter<Extract = impl warp::Reply, Error = Infalli
 
     let books = warp::path("books");
     let new = warp::path("new");
+    let list = warp::path("list");
     let edit = warp::path("edit");
     let delete = warp::path("delete");
 
@@ -35,12 +36,20 @@ pub fn router(db: DB) -> impl Filter<Extract = impl warp::Reply, Error = Infalli
             .and(with_db(db.clone()))
             .and_then(app::books::edit_book_handler))
         .or(books
+            .and(edit)
+            .and(warp::post())
+            .and(warp::path::param())
+            .and(warp::body::form())
+            .and(with_db(db.clone()))
+            .and_then(app::books::do_edit_book_handler))
+        .or(books
             .and(delete)
             .and(warp::get())
             .and(warp::path::param())
             .and(with_db(db.clone()))
             .and_then(app::books::delete_book_handler))
         .or(books
+            .and(list)
             .and(warp::get())
             .and(with_db(db.clone()))
             .and_then(app::books::books_list_handler));
