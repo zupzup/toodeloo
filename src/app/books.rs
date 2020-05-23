@@ -1,5 +1,9 @@
 use crate::db::books::{create_book, delete_book, edit_book, fetch_book, fetch_books};
-use crate::{data::Book, error::Error::*, WebResult, DB};
+use crate::{
+    data::{Book, Session},
+    error::Error::*,
+    WebResult, DB,
+};
 use askama::Template;
 use serde::{Deserialize, Serialize};
 use warp::{reject, reply::html, Reply};
@@ -36,7 +40,8 @@ pub struct EditedBook {
     pub pages: i32,
 }
 
-pub async fn books_list_handler(db: DB) -> WebResult<impl Reply> {
+pub async fn books_list_handler(session: Session, db: DB) -> WebResult<impl Reply> {
+    log::info!("session in handler: {:?}", session);
     let books = fetch_books(&db).await.map_err(|e| reject::custom(e))?;
     let template = BooklistTemplate { books };
     let res = template
@@ -45,7 +50,7 @@ pub async fn books_list_handler(db: DB) -> WebResult<impl Reply> {
     Ok(html(res))
 }
 
-pub async fn new_book_handler(_db: DB) -> WebResult<impl Reply> {
+pub async fn new_book_handler(_session: Session, _db: DB) -> WebResult<impl Reply> {
     let template = NewBookTemplate {};
     let res = template
         .render()
@@ -53,14 +58,14 @@ pub async fn new_book_handler(_db: DB) -> WebResult<impl Reply> {
     Ok(html(res))
 }
 
-pub async fn create_book_handler(body: NewBook, db: DB) -> WebResult<impl Reply> {
+pub async fn create_book_handler(body: NewBook, session: Session, db: DB) -> WebResult<impl Reply> {
     create_book(&body, &db)
         .await
         .map_err(|e| reject::custom(e))?;
-    books_list_handler(db).await
+    books_list_handler(session, db).await
 }
 
-pub async fn edit_book_handler(id: String, db: DB) -> WebResult<impl Reply> {
+pub async fn edit_book_handler(id: String, _session: Session, db: DB) -> WebResult<impl Reply> {
     let book = fetch_book(&id, &db).await.map_err(|e| reject::custom(e))?;
     let template = EditBookTemplate { book };
     let res = template
@@ -69,14 +74,19 @@ pub async fn edit_book_handler(id: String, db: DB) -> WebResult<impl Reply> {
     Ok(html(res))
 }
 
-pub async fn do_edit_book_handler(id: String, body: EditedBook, db: DB) -> WebResult<impl Reply> {
+pub async fn do_edit_book_handler(
+    id: String,
+    body: EditedBook,
+    session: Session,
+    db: DB,
+) -> WebResult<impl Reply> {
     edit_book(&id, &body, &db)
         .await
         .map_err(|e| reject::custom(e))?;
-    books_list_handler(db).await
+    books_list_handler(session, db).await
 }
 
-pub async fn delete_book_handler(id: String, db: DB) -> WebResult<impl Reply> {
+pub async fn delete_book_handler(id: String, session: Session, db: DB) -> WebResult<impl Reply> {
     delete_book(&id, &db).await.map_err(|e| reject::custom(e))?;
-    books_list_handler(db).await
+    books_list_handler(session, db).await
 }

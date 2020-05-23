@@ -5,7 +5,7 @@ authors = ["Mario Zupan <mario@zupzup.org>"]
 edition = "2018"
 
 [dependencies]
-tokio = { version = "0.2", features = ["macros"] }
+tokio = { version = "0.2", features = ["macros", "rt-threaded"] }
 warp = "0.2"
 serde = {version = "1.0", features = ["derive"] }
 serde_json = "1.0"
@@ -20,6 +20,8 @@ futures = { version = "0.3.4", default-features = false, features = ["async-awai
 askama = "0.8"
 mongodb = "0.10.0"
 bson = "0.14.1"
+bcrypt = "0.8"
+uuid = { version = "0.8", features = ["serde", "v4"] }
 
 [profile.dev]
 debug = 0

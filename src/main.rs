@@ -28,10 +28,6 @@ async fn main() -> Result<()> {
 
     let (db, _client) = db::init().await?;
 
-    let _collection = db.collection("books");
-
-    // TODO: put routing in a module
-
     info!("Started on port 8080");
     let routes = routes::router(db);
 

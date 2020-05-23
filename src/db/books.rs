@@ -30,7 +30,7 @@ pub async fn fetch_book(id: &str, db: &DB) -> Result<Book> {
     let coll = db.collection(BOOKS);
     let oid = ObjectId::with_string(id).map_err(|_| InvalidIDError(id.to_owned()))?;
     let filter = doc! {
-    "_id": oid,
+        ID: oid,
     };
 
     let result = coll.find_one(filter, None).await.map_err(MongoQueryError)?;

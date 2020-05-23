@@ -19,6 +19,12 @@ pub enum Error {
     TemplateError(#[from] askama::Error),
     #[error("error reading file: {0}")]
     ReadFileError(#[from] std::io::Error),
+    #[error("invalid credentials used")]
+    InvalidCredentials,
+    #[error("could not create session")]
+    CreateSessionError,
+    #[error("no session found")]
+    NoSessionFoundError,
 }
 
 #[derive(Serialize)]

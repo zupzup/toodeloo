@@ -9,9 +9,10 @@ struct WelcomeTemplate<'a> {
     body: &'a str,
 }
 
+pub mod auth;
 pub mod books;
 
-pub async fn welcome_handler(_db: DB) -> WebResult<impl Reply> {
+pub async fn welcome_handler() -> WebResult<impl Reply> {
     let template = WelcomeTemplate {
         title: "Welcome",
         body: "To Toodeloo!",
