@@ -1,4 +1,8 @@
-use crate::db::{session::create_session, user::fetch_user};
+use crate::data::Session;
+use crate::db::{
+    session::{create_session, delete_session},
+    user::fetch_user,
+};
 use crate::{error::Error::*, WebResult, DB};
 use askama::Template;
 use serde::{Deserialize, Serialize};
@@ -56,6 +60,18 @@ pub async fn do_login_handler(body: LoginUser, db: DB) -> WebResult<impl Reply> 
     // TODO: encrypt session_id in cookie
     let response = warp::reply::with_header(html, SET_COOKIE, &create_cookie(&session_id));
     Ok(response)
+}
+
+pub async fn logout_handler(session: Session, db: DB) -> WebResult<impl Reply> {
+    delete_session(&session.session_id, &db)
+        .await
+        .map_err(|_| reject::custom(LogoutError))?;
+    let reply = login_handler().await?;
+    Ok(warp::reply::with_header(
+        reply,
+        SET_COOKIE,
+        &create_cookie(""),
+    ))
 }
 
 fn create_cookie(session_id: &str) -> String {

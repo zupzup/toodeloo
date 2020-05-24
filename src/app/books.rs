@@ -58,14 +58,14 @@ pub async fn new_book_handler(_session: Session, _db: DB) -> WebResult<impl Repl
     Ok(html(res))
 }
 
-pub async fn create_book_handler(body: NewBook, session: Session, db: DB) -> WebResult<impl Reply> {
+pub async fn create_book_handler(session: Session, body: NewBook, db: DB) -> WebResult<impl Reply> {
     create_book(&body, &db)
         .await
         .map_err(|e| reject::custom(e))?;
     books_list_handler(session, db).await
 }
 
-pub async fn edit_book_handler(id: String, _session: Session, db: DB) -> WebResult<impl Reply> {
+pub async fn edit_book_handler(_session: Session, id: String, db: DB) -> WebResult<impl Reply> {
     let book = fetch_book(&id, &db).await.map_err(|e| reject::custom(e))?;
     let template = EditBookTemplate { book };
     let res = template
@@ -75,9 +75,9 @@ pub async fn edit_book_handler(id: String, _session: Session, db: DB) -> WebResu
 }
 
 pub async fn do_edit_book_handler(
+    session: Session,
     id: String,
     body: EditedBook,
-    session: Session,
     db: DB,
 ) -> WebResult<impl Reply> {
     edit_book(&id, &body, &db)
@@ -86,7 +86,7 @@ pub async fn do_edit_book_handler(
     books_list_handler(session, db).await
 }
 
-pub async fn delete_book_handler(id: String, session: Session, db: DB) -> WebResult<impl Reply> {
+pub async fn delete_book_handler(session: Session, id: String, db: DB) -> WebResult<impl Reply> {
     delete_book(&id, &db).await.map_err(|e| reject::custom(e))?;
     books_list_handler(session, db).await
 }

@@ -1,7 +1,10 @@
 use serde::Serialize;
 use std::convert::Infallible;
 use thiserror::Error;
-use warp::{http::StatusCode, Rejection, Reply};
+use warp::{
+    http::{StatusCode, Uri},
+    redirect, reply, Rejection, Reply,
+};
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -23,6 +26,8 @@ pub enum Error {
     InvalidCredentials,
     #[error("could not create session")]
     CreateSessionError,
+    #[error("could not log out")]
+    LogoutError,
     #[error("no session found")]
     NoSessionFoundError,
 }
@@ -34,7 +39,7 @@ struct ErrorResponse {
 
 impl warp::reject::Reject for Error {}
 
-pub async fn handle_rejection(err: Rejection) -> std::result::Result<impl Reply, Infallible> {
+pub async fn handle_rejection(err: Rejection) -> std::result::Result<Box<dyn Reply>, Infallible> {
     let code;
     let message;
     // TODO: create template for this
@@ -48,6 +53,9 @@ pub async fn handle_rejection(err: Rejection) -> std::result::Result<impl Reply,
         message = "Invalid Body";
     } else if let Some(e) = err.find::<Error>() {
         match e {
+            Error::NoSessionFoundError => {
+                return Ok(Box::new(redirect(Uri::from_static("/login"))));
+            }
             _ => {
                 eprintln!("unhandled application error: {:?}", err);
                 code = StatusCode::INTERNAL_SERVER_ERROR;
@@ -63,9 +71,9 @@ pub async fn handle_rejection(err: Rejection) -> std::result::Result<impl Reply,
         message = "Internal Server Error";
     }
 
-    let json = warp::reply::json(&ErrorResponse {
+    let json = reply::json(&ErrorResponse {
         message: message.into(),
     });
 
-    Ok(warp::reply::with_status(json, code))
+    Ok(Box::new(reply::with_status(json, code)))
 }

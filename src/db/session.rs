@@ -37,6 +37,17 @@ pub async fn find_session(session_id: &str, db: &DB) -> Result<Session> {
     }
 }
 
+pub async fn delete_session(session_id: &str, db: &DB) -> Result<()> {
+    let coll = db.collection(SESSIONS);
+    let filter = doc! {
+        SESSION_ID: session_id,
+    };
+    coll.delete_one(filter, None)
+        .await
+        .map_err(MongoQueryError)?;
+    Ok(())
+}
+
 fn doc_to_session(doc: &OrderedDocument) -> Result<Session> {
     let id = doc.get_object_id(ID)?;
     let session_id = doc.get_str(SESSION_ID)?;

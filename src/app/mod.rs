@@ -1,4 +1,5 @@
-use crate::{error::Error::*, WebResult, DB};
+use crate::data::Session;
+use crate::{error::Error::*, WebResult};
 use askama::Template;
 use warp::{reject, reply::html, Reply};
 
@@ -12,7 +13,7 @@ struct WelcomeTemplate<'a> {
 pub mod auth;
 pub mod books;
 
-pub async fn welcome_handler() -> WebResult<impl Reply> {
+pub async fn welcome_handler(_session: Session) -> WebResult<impl Reply> {
     let template = WelcomeTemplate {
         title: "Welcome",
         body: "To Toodeloo!",
