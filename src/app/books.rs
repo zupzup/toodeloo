@@ -10,8 +10,8 @@ use warp::{reject, reply::html, Reply};
 
 #[derive(Template)]
 #[template(path = "book/list.html")]
-struct BooklistTemplate {
-    books: Vec<Book>,
+struct BooklistTemplate<'a> {
+    books: &'a Vec<Book>,
 }
 
 #[derive(Template)]
@@ -20,8 +20,8 @@ struct NewBookTemplate {}
 
 #[derive(Template)]
 #[template(path = "book/edit.html")]
-struct EditBookTemplate {
-    book: Book,
+struct EditBookTemplate<'a> {
+    book: &'a Book,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -43,7 +43,7 @@ pub struct EditedBook {
 pub async fn books_list_handler(session: Session, db: DB) -> WebResult<impl Reply> {
     log::info!("session in handler: {:?}", session);
     let books = fetch_books(&db).await.map_err(|e| reject::custom(e))?;
-    let template = BooklistTemplate { books };
+    let template = BooklistTemplate { books: &books };
     let res = template
         .render()
         .map_err(|e| reject::custom(TemplateError(e)))?;
@@ -67,7 +67,7 @@ pub async fn create_book_handler(session: Session, body: NewBook, db: DB) -> Web
 
 pub async fn edit_book_handler(_session: Session, id: String, db: DB) -> WebResult<impl Reply> {
     let book = fetch_book(&id, &db).await.map_err(|e| reject::custom(e))?;
-    let template = EditBookTemplate { book };
+    let template = EditBookTemplate { book: &book };
     let res = template
         .render()
         .map_err(|e| reject::custom(TemplateError(e)))?;
